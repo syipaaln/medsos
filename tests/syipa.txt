@@ -1,0 +1,328 @@
+<video width="640" height="360" controls>
+  <source src="{{ asset('/image/'.$item->foto)}}" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+$request->validate([
+                'foto' => 'required|file|mimes:mp4,gif|max:10240',
+            ]);
+
+https://medium.com/@revalinaf180/data-relational-dan-fitur-upload-foto-di-laravel-9-crud-e384c908e6d7
+https://www.sinauo.com/2021/08/tutorial-crud-laravel-8-simple-dan.html
+https://dev.to/yudhasdev/tutorial-laravel-1-membuat-project-baru-161g
+https://www.sobatambisius.com/2021/11/cara-mengupload-website-ke-github.html
+https://bahasaweb.com/membuat-hak-akses-user-di-laravel/
+https://maseduproject.com/tutorial-laravel-10-part-13-relasi-antar-tabel-one-to-many/
+https://www.sahretech.com/2020/11/cara-menampilkan-data-di-laravel-dengan.html
+https://www.itsolutionstuff.com/post/laravel-10-multi-auth-create-multiple-authentication-in-laravelexample.html
+
+composer global require laravel/installer
+laravel new nama_projek
+
+composer create-project laravel/laravel nama_projek
+php artisan migrate
+composer require laravel/ui
+php artisan ui:auth
+php artisan ui bootstrap
+npm install
+npm run dev
+npm run build
+php artisan serve
+
+middleware\RedirectIfAuththenticated
+	// Jika pengguna sudah login, redirect dari rute login
+        if (Auth::check() && $request->routeIs('login')) {
+            return redirect('/home'); // Sesuaikan dengan path halaman setelah login
+        }
+
+        // Jika pengguna belum login, redirect dari rute logout
+        if (!Auth::check() && $request->routeIs('logout')) {
+            return redirect('/login'); // Sesuaikan dengan path halaman login
+        }
+
+        return $next($request);
+
+use Illuminate\Http\Request;
+protected function authenticated(Request $request, $user)
+    {
+        // Set notifikasi flash ke session
+        session()->flash('success', 'Login berhasil!');
+
+        // Redirect ke lokasi yang ditentukan setelah login
+        return redirect()->intended($this->redirectPath());
+    }
+public function logout(Request $request) {
+        auth()->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect('/login');
+    }
+
+controller
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Feed;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+
+class FeedController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        $feed = Feed::latest()->paginate(5);
+        return view('feed.index', compact('feed'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        return view('feed.create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'video' => ['required', 'mimes:mp4', 'max:10240']
+        ]);
+
+        $user = auth()->user();
+        $feed = new Feed();
+        $feed->created_by = $user->id;
+        $feed->video =$request->file('video')->store('feed');
+        $feed->caption = $request->caption;
+        $feed->save();
+
+        return redirect(route('feed.index'))->with('success','Added!');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Feed $feed)
+    {
+        if($feed->video) {
+            Storage::delete($feed->video);
+        }
+        if ($feed->delete()) {
+            return redirect()->route('feed.index')->with('success', 'Video berhasil di hapus!');
+        }
+        return redirect()->route('feed.index')->with('error', 'Video gagal di hapus!');
+    }
+}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <title>Feed Video</title>
+</head>
+<body>
+    <div class="container text-center">
+        <h2 class="text-center mt-4">Feed</h2>
+        @if ($message = Session::get('success'))
+            <div class="alert alert-success">
+                <p class="m-0">{{ $message }}</p>
+            </div>
+        @endif
+        @foreach ($feed as $singleFeed)
+            <div class="position-relative d-inline-block">
+                <video width="640" height="360" controls class="card-img-top">
+                    <source src="{{ asset('storage/'.$singleFeed->video)}}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <form action="{{ route('feed.destroy',$singleFeed->id) }}" method="POST"  class="position-absolute" style="top: 10px; right: 10px;">
+        
+                    @csrf
+                    @method('DELETE')
+
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
+                        <i class="bi bi-trash-fill"></i>
+                    </button>
+                </form>
+            </div>
+            <div class="text-left">
+                <div>{{ $singleFeed->caption }}</div>
+                <div>{{ $singleFeed->created_at->format('d F Y') }}</div>
+            </div>
+            <br>
+        @endforeach
+        <div class="pagination justify-content-center">
+            {!! $feed->links('pagination::bootstrap-4') !!}
+        </div>
+        
+        <a class="btn btn-warning" href="{{ route('logout') }}"
+            onclick="event.preventDefault();
+                        document.getElementById('logout-form').submit();">
+            {{ __('Logout') }}
+        </a>
+
+        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+            @csrf
+        </form>
+        <a class="btn btn-success" href="{{ route('feed.create') }}">Add</a>
+    </div>
+
+    
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Feed Video</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-center" style="margin-top: 40px;">New Feed</h2>
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <strong>Whoops!</strong> Input gagal.<br><br>
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+        <form action="{{ route('feed.store') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            {{-- <div class="form-group">
+                <strong>Video:</strong>
+                <input type="file" name="video" class="form-control" placeholder="Video" accept="video/*">
+            </div> --}}
+            <div class="card">
+                <div class="card-body">
+                    <div id="drop-area" class="border rounded d-flex justify-content-center align-items-center"
+                        style="height: 200px; cursor: pointer;">
+                        <div class="text-center">
+                            <i class="bi bi-cloud-arrow-up-fill text-primary" style="font-size: 48px;"></i>
+                            <p class="mt-3">Drag and drop your image here or click to select a file.</p>
+                        </div>
+                    </div>
+                    <input type="file" name="video" id="fileElem" accept="video/*" class="d-none" multiple>
+                </div>
+            </div>
+            <div class="form-group">
+                <strong>Caption:</strong>
+                <textarea name="caption" class="form-control"></textarea>
+            </div>
+            <br>
+            <div class="col-xs-12 col-sm-12 col-md-12 text-center">
+                <button type="submit" class="btn btn-primary">Create</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        let dropArea = document.getElementById("drop-area");
+
+        ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        ["dragenter", "dragover"].forEach((eventName) => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+
+        ["dragleave", "drop"].forEach((eventName) => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        dropArea.addEventListener("drop", handleDrop, false);
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function highlight(e) {
+            dropArea.classList.add("highlight");
+        }
+
+        function unhighlight(e) {
+            dropArea.classList.remove("highlight");
+        }
+
+        function handleDrop(e) {
+            let dt = e.dataTransfer;
+            let files = dt.files;
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            [...files].forEach(uploadFile);
+        }
+
+        function uploadFile(file) {
+            console.log("Uploading", file.name);
+        }
+
+        dropArea.addEventListener("click", () => {
+            fileElem.click();
+        });
+
+        let fileElem = document.getElementById("fileElem");
+            fileElem.addEventListener("change", function (e) {
+            handleFiles(this.files);
+        });
+    </script>
+
+</body>
+</html>
+
+Schema::create('feeds', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('created_by');
+            $table->string('video');
+            $table->text('caption')->nullable();
+            $table->timestamps();
+
+            $table->foreign('created_by')->references('id')->on('users')->onDelete('cascade');
+
+public function run(): void
+    {
+        User::create([
+            'email' => 'syipa@gmail.com',
+            'password' => bcrypt('syipa123'),
+            'name' => 'syipaaln',
+        ]);
+        User::create([
+            'email' => 'moiz@gmail.com',
+            'password' => bcrypt('moiz1234'),
+            'name' => 'moiz',
+        ]);
+    }
+
+<div class="col-md-12">
+                                    <div class="flex items-center justify-center h-48 mb-3">
+                                        <video id="preview-video" class="object-cover object-center w-full" controls style="max-height: 450px;">
+                                            <source src="" type="video/mp4">
+                                            Your browser does not support the video tag.
+                                        </video>
+                                    </div>
