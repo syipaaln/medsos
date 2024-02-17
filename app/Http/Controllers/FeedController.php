@@ -54,9 +54,11 @@ class FeedController extends Controller
         if($feed->video) {
             Storage::delete($feed->video);
         }   
+
         if($feed->delete()) {
             return redirect(route('feed.index'))->with('success', 'Video berhasil dihapus!');
         }
+        
         return redirect(route('feed.index'))->with('error', 'Video gagal dihapus!');
     }
 }

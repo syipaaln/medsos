@@ -13,7 +13,7 @@
         <h2 class="text-center" style="margin-top: 40px;">New Feed</h2>
         @if ($errors->any())
             <div class="alert alert-danger">
-                <strong>Whoops!</strong> Input gagal.<br><br>
+                <strong>Whoops!</strong> Input gagal<br><br>
                 <ul>
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -39,8 +39,7 @@
                 <strong>Caption:</strong>
                 <textarea name="caption" class="form-control"></textarea>
             </div>
-            <br>
-            <div class="col-xs-12 col-sm-12 col-md-12 text-center">
+            <div class="col-xs-12 col-sm-12 col-md-12 text-center mt-4">
                 <button type="submit" class="btn btn-primary rounded-pill" style="width: 100%">Create</button>
             </div>
         </form>

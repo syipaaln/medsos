@@ -36,19 +36,17 @@
                     </button>
                 </form>
             </div>
-            <div class="text-left">
+            <div class="text-left mb-4">
                 <div>{{ $feeds->caption }}</div>
                 <div>{{ $feeds->created_at->format('d F Y') }}</div>
             </div>
-            <br>
         @endforeach
+
         <div class="pagination justify-content-center">
             {!! $feed->links('pagination::bootstrap-4') !!}
         </div>
         
-        <a class="btn btn-warning" href="{{ route('logout') }}"
-            onclick="event.preventDefault();
-                        document.getElementById('logout-form').submit();">
+        <a class="btn btn-warning" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
             {{ __('Logout') }}
         </a>
 
