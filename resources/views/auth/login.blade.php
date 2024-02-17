@@ -1,4 +1,4 @@
-@extends('layouts.app')
+{{-- @extends('layouts.app')
 
 @section('content')
 <div class="container">
@@ -70,9 +70,9 @@
         </div>
     </div>
 </div>
-@endsection
+@endsection --}}
 
-{{-- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -83,16 +83,27 @@
     <title>Login</title>
 </head>
 <body>
-    <form>
-        <div class="mb-3">
-            <label for="exampleInputEmail1" class="form-label">Email address</label>
-            <input type="email" class="form-control" id="exampleInputEmail1">
-        </div>
-        <div class="mb-3">
-            <label for="exampleInputPassword1" class="form-label">Password</label>
-            <input type="password" class="form-control" id="exampleInputPassword1">
-        </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
-      </form>
+    <div class="container">
+        <h2 class="text-center my-5">Login</h2>
+        <form method="POST" action="{{ route('login') }}">
+            <div class="mb-4">
+                <input type="email" class="form-control @error('email') is-invalid @enderror" id="email"  value="{{ old('email') }}" required autocomplete="email" autofocus placeholder="Email">
+                @error('email')
+                    <span class="invalid-feedback" role="alert">
+                        <strong>Email atau password yang anda masukkan salah</strong>
+                    </span>
+                @enderror
+            </div>
+            <div class="mb-4">
+                <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" required autocomplete="current-password" placeholder="Password">
+                @error('password')
+                    <span class="invalid-feedback" role="alert">
+                        <strong>Email atau password yang anda masukkan salah</strong>
+                    </span>
+                @enderror
+            </div>
+            <button type="submit" class="btn btn-primary rounded-pill" style="width: 100%">Login</button>
+        </form>
+    </div>
 </body>
-</html> --}}
+</html>
