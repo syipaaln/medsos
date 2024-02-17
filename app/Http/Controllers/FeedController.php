@@ -42,6 +42,7 @@ class FeedController extends Controller
         $feed->caption = $request->caption;
         $feed->save();
 
+        // Redirect ke halaman index dan tampilkan alert
         return redirect(route('feed.index'))->with('success','Video berhasil ditambahkan!');
     }
 
@@ -51,14 +52,17 @@ class FeedController extends Controller
      */
     public function destroy(Feed $feed)
     {
+        // Hapus dari public\storage\feed
         if($feed->video) {
             Storage::delete($feed->video);
         }   
 
+        // Hapus dan redirect ke halaman index serta tampilkan alert success
         if($feed->delete()) {
             return redirect(route('feed.index'))->with('success', 'Video berhasil dihapus!');
         }
-        
+
+        // Redirect ke halaman index dan tampilkan alert error
         return redirect(route('feed.index'))->with('error', 'Video gagal dihapus!');
     }
 }
